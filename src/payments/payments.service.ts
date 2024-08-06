@@ -35,8 +35,8 @@ export class PaymentsService {
             },
             line_items: lineItems,
             mode: 'payment',
-            success_url: 'http://localhost:3003/payments/success',
-            cancel_url: 'http://localhost:3003/payments/cancel'
+            success_url: envs.stripeSuccessUrl,
+            cancel_url: envs.stripeCancelUrl
         });
 
         return session;
@@ -52,7 +52,7 @@ export class PaymentsService {
         //const endpointSecret ='whsec_3ed5e120249e2fbf279696c26b47e9aa08844764fc5daedfdb2e6d8aad2bba4a';
 
         // Real
-        const endpointSecret = 'whsec_ywoVtvi5GXLW8cw6gJzgsjWUQuY9cnWu'
+        const endpointSecret = envs.stripeEndpointSecret
 
 
         try {
