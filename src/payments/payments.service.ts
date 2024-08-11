@@ -1,13 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { envs } from 'src/config';
+import { Inject, Injectable, Logger, ParseUUIDPipe } from '@nestjs/common';
+import { envs, NATS_SERVICE } from 'src/config';
 import Stripe from 'stripe';
 import { PaymentSessionDto } from './dto/payment-session.dto';
 import { Request, Response } from 'express';
+import { ClientProxy, Payload } from '@nestjs/microservices';
 
 @Injectable()
 export class PaymentsService {
 
     private readonly stripe = new Stripe(envs.stripeSecret);
+    private readonly logger = new Logger('PaymentsService')
+
+    constructor(
+        @Inject(NATS_SERVICE) private readonly client: ClientProxy
+    ) { }
+
+
 
     async createPaymentSession(paymentSessionDto: PaymentSessionDto) {
 
@@ -16,12 +24,11 @@ export class PaymentsService {
 
         const lineItems = items.map(item => ({
             price_data: {
-
                 currency: currency,
                 product_data: {
                     name: item.name
                 },
-                unit_amount: Math.round(item.price * 100),
+                unit_amount: Math.round(item.price * 100)
             },
             quantity: item.quantity
         }))
@@ -39,7 +46,12 @@ export class PaymentsService {
             cancel_url: envs.stripeCancelUrl
         });
 
-        return session;
+        // return session;
+        return {
+            cancelUrl: session.cancel_url,
+            successUrl: session.success_url,
+            url: session.url,
+        }
     }
 
 
@@ -71,18 +83,19 @@ export class PaymentsService {
         switch (event.type) {
             case 'charge.succeeded':
                 const chargeSucceeded = event.data.object;
-                //TODO: Call our microservice
-                console.log({
-                    metadata: chargeSucceeded.metadata,
+                const payload = {
+                    stripePaymentId: chargeSucceeded.id,
                     orderId: chargeSucceeded.metadata.orderId,
-                });
+                    receiptUrl: chargeSucceeded.receipt_url,
+                }
+                //this.logger.log({ payload })
+                this.client.emit('payment.succeeded', payload)
                 break;
             default:
                 console.log(`Event ${event.type} not handled`)
 
         }
 
-        //return res.status(200).json({ sig })
         return res.status(200).json({ sig })
 
     }
