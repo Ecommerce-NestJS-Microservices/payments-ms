@@ -1,0 +1,26 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+       #"XXXXX-docker.pkg.dev/project-name/registry/image-name",
+        "northamerica-northeast1-docker.pkg.dev/microservices-dev-432918/image-registry/payments-ms",
+        "-f",
+        "dockerfile.prod",
+        "--platform=linux/amd64",
+        ".",
+      ]
+      #like demonio docker
+  - name: "gcr.io/cloud-builders/docker" 
+    args:
+      [
+        "push",
+        #"XXXXX-docker.pkg.dev/project-name/registry/image-name",
+        "northamerica-northeast1-docker.pkg.dev/microservices-dev-432918/image-registry/payments-ms",
+      ]
+
+      # Agregar esta sección al final del archivo
+options:
+  logging: CLOUD_LOGGING_ONLY
+
