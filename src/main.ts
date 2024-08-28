@@ -18,7 +18,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-    })  
+    })
   );
 
   app.connectMicroservice<MicroserviceOptions>(
@@ -37,6 +37,8 @@ async function bootstrap() {
   await app.startAllMicroservices(); //microservicio
 
   await app.listen(envs.port); // api res
+
+  console.log('Health check configured !')
 
   logger.log(`Payments Microservice running on port ${envs.port}`)
 
